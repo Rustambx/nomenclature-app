@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Category;
+namespace App\Http\Requests\Product;
 
-use App\Http\Requests\ApiRequest;
+use Illuminate\Foundation\Http\FormRequest;
 
-class CategoryUpdateRequest extends ApiRequest
+class ProductUploadRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,16 +22,15 @@ class CategoryUpdateRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'name' => 'required',
-            'parent_id' => 'nullable|uuid|exists:categories,id',
+            'file' => 'required|file|image|mimes:jpeg,png,jpg|max:2048',
+            'product_id' => 'required|uuid|exists:products,id',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required' => 'Поле name обязательно',
-            'parent_id.exists' => 'Выбранная категория не существует.'
+
         ];
     }
 }

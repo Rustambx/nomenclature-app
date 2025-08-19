@@ -1,14 +1,14 @@
 FROM php:8.2-fpm
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends vim curl debconf subversion git apt-transport-https apt-utils \
-    build-essential locales acl mailutils wget zip libicu-dev libzip-dev unzip \
-    gnupg gnupg1 gnupg2 libwebp-dev libjpeg62-turbo-dev libpng-dev libxpm-dev libpq-dev \
-    libfreetype6-dev
-
-RUN docker-php-ext-install zip
-
-RUN docker-php-ext-install pgsql pdo_pgsql pdo
+    && apt-get install -y --no-install-recommends \
+        vim curl debconf subversion git apt-transport-https apt-utils \
+        build-essential locales acl mailutils wget zip libicu-dev libzip-dev unzip \
+        gnupg gnupg1 gnupg2 libwebp-dev libjpeg62-turbo-dev libpng-dev libxpm-dev libpq-dev \
+        libfreetype6-dev \
+    && docker-php-ext-install zip sockets \
+    && docker-php-ext-install pgsql pdo_pgsql pdo \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sSk https://getcomposer.org/installer | php -- --disable-tls \
     && mv composer.phar /usr/local/bin/composer

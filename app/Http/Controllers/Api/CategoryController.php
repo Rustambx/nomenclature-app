@@ -2,30 +2,32 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Category\CategoryStoreRequest;
 use App\Http\Requests\Category\CategoryUpdateRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
+use App\Services\CategoryService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
+    private CategoryService $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $categories = Category::all();
+        $categories = $this->categoryService->getAll();
 
-        return response()->json([
-            "message" => "Записи успешно получены",
-            "data" => $categories,
-            "timestamp" => Carbon::now('UTC')->format('Y-m-d\TH:i:s.u\Z'),
-            "success" => true
-        ]);
-
+        return ApiResponse::success(CategoryResource::collection($categories), "Записи успешно получены");
     }
 
     /**
@@ -35,23 +37,9 @@ class CategoryController extends Controller
     {
         $data = $request->validated();
 
-        $category = Category::create([
-            'name' => $data['name'],
-            'parent_id' => $data['parent_id'] ?? null,
-            'created_by' => $request->user()->id,
-            'updated_by' => $request->user()->id,
-            'created_at' => Carbon::now('UTC')->format('Y-m-d\TH:i:s.u\Z'),
-        ]);
+        $category = $this->categoryService->create($data, $request->user()->id);
 
-
-        return response()->json([
-            "message" => "Запись успешно добавлена",
-            "data" => $category,
-            "timestamp" => Carbon::now('UTC')->format('Y-m-d\TH:i:s.u\Z'),
-            "success" => true
-        ]);
-
-
+        return ApiResponse::success(CategoryResource::make($category), "Запись успешно добавлена");
     }
 
     /**
@@ -59,14 +47,9 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        $category = Category::findOrFail($id);
+        $category = $this->categoryService->getById($id);
 
-        return response()->json([
-            "message" => "Запись успешно получена",
-            "data" => $category,
-            "timestamp" => Carbon::now('UTC')->format('Y-m-d\TH:i:s.u\Z'),
-            "success" => true
-        ]);
+        return ApiResponse::success(CategoryResource::make($category), "Запись успешно получена");
     }
 
     /**
@@ -74,22 +57,12 @@ class CategoryController extends Controller
      */
     public function update(CategoryUpdateRequest $request, string $id)
     {
-        $category = Category::findOrFail($id);
-
         $data = $request->validated();
-        $category->update([
-            'name' => $data['name'],
-            'parent_id' => $data['parent_id'] ?? null,
-            'updated_by' => $request->user()->id,
-            'updated_at' => Carbon::now('UTC')->format('Y-m-d\TH:i:s.u\Z'),
-        ]);
 
-        return response()->json([
-            "message" => "Запись успешно обновлена",
-            "data" => $category,
-            "timestamp" => Carbon::now('UTC')->format('Y-m-d\TH:i:s.u\Z'),
-            "success" => true
-        ]);
+        $category = $this->categoryService->getById($id);
+        $categoryUpdated = $this->categoryService->update($category, $data, $request->user()->id);
+
+        return ApiResponse::success(CategoryResource::make($categoryUpdated), "Запись успешно обновлена");
     }
 
     /**
@@ -97,6 +70,9 @@ class CategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $category = $this->categoryService->getById($id);
+        $this->categoryService->delete($category);
+
+        return ApiResponse::success([], "Запись успешно удалена");
     }
 }
