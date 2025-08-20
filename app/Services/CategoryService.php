@@ -4,12 +4,22 @@ namespace App\Services;
 
 use App\Models\Category;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CategoryService
 {
-    public function getAll()
+    public function getPaginated(Request $request): LengthAwarePaginator
     {
-        return Category::all();
+        $perPage = (int) $request->input('per_page', 20);
+        $perPage = max(1, min($perPage, 100));
+
+        return Category::query()
+            ->when($request->filled('name'), fn($q) =>
+            $q->where('name', 'ilike', '%'.$request->string('name').'%'))
+            ->orderByDesc('created_at')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function getById($id)

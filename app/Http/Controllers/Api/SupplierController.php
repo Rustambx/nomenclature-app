@@ -8,6 +8,7 @@ use App\Http\Requests\Supplier\SupplierStoreRequest;
 use App\Http\Requests\Supplier\SupplierUpdateRequest;
 use App\Http\Resources\SupplierResource;
 use App\Services\SupplierService;
+use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
@@ -22,11 +23,11 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = $this->supplierService->getAll();
+        $paginator = $this->supplierService->getPaginated($request);
 
-        return ApiResponse::success(SupplierResource::collection($suppliers), "Записи успешно получены");
+        return ApiResponse::paginated($paginator, SupplierResource::class, "Записи успешно получены");
     }
 
     /**

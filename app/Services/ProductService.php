@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Imports\ProductImport;
 use App\Models\Product;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -13,9 +15,15 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductService
 {
-    public function getAll()
+    public function getPaginated(Request $request): LengthAwarePaginator
     {
-        return Product::all();
+        $perPage = (int)$request->input('per_page', 20);
+        $perPage = max(1, min($perPage, 100));
+
+        return Product::query()
+            ->when($request->filled('name'), fn($q) => $q->where('name', 'ilike', '%' . $request->string('name') . '%'))
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function getById(string $id)
@@ -59,7 +67,7 @@ class ProductService
 
     public function uploadImage(Product $product, UploadedFile $file, string $userId)
     {
-        $fileName = Str::uuid(). '.' .$file->getClientOriginalExtension();
+        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
         $path = Storage::disk('minio')->putFileAs('products', $file, $fileName);
         $url = env('MINIO_PUBLIC_URL') . '/products/' . $fileName;
 

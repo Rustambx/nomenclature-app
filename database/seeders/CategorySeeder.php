@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Faker\Factory as Faker;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -16,27 +17,28 @@ class CategorySeeder extends Seeder
     {
         $faker = Faker::create();
         $userIds = DB::table('users')->pluck('id')->toArray();
-        $categories = [];
 
         $numCategories = rand(30, 50);
+        $insertedIds = [];
 
         for ($i = 0; $i < $numCategories; $i++) {
-            $parentId = null;
-            if (!empty($categories) && rand(0, 1)) {
-                $parentId = $faker->randomElement(array_column($categories, 'id'));
-            }
+            $id = (string) Str::uuid();
 
-            $categories[] = [
-                'id' => (string) Str::uuid(),
-                'name' => ucfirst($faker->word),
-                'parent_id' => $parentId ?? Str::uuid(),
-                'created_by' => $faker->randomElement($userIds),
-                'updated_by' => $faker->randomElement($userIds),
+            $parentId = (!empty($insertedIds) && rand(0, 1))
+                ? Arr::random($insertedIds)
+                : null;
+
+            DB::table('categories')->insert([
+                'id'         => $id,
+                'name'       => ucfirst($faker->unique()->word),
+                'parent_id'  => $parentId,
+                'created_by' => Arr::random($userIds),
+                'updated_by' => Arr::random($userIds),
                 'created_at' => now(),
                 'updated_at' => now(),
-            ];
-        }
+            ]);
 
-        DB::table('categories')->insert($categories);
+            $insertedIds[] = $id;
+        }
     }
 }

@@ -1,6 +1,6 @@
 name,description,category_id,supplier_id,price
-Телефон iPhone 14,"Смартфон Apple iPhone 14",e5837e94-b52d-4708-ada7-fedde7e18a5d,479b6c3a-75fd-488f-bb5c-da28a1d996b3,999.99
-Ноутбук Lenovo,"Игровой ноутбук Lenovo Legion",e5837e94-b52d-4708-ada7-fedde7e18a5d,479b6c3a-75fd-488f-bb5c-da28a1d996b3,1299.50
-Наушники Sony WH-1000XM5,"Беспроводные наушники с шумоподавлением",e5837e94-b52d-4708-ada7-fedde7e18a5d,479b6c3a-75fd-488f-bb5c-da28a1d996b3,399.90
-Клавиатура Logitech,"Механическая клавиатура Logitech G Pro",e5837e94-b52d-4708-ada7-fedde7e18a5d,479b6c3a-75fd-488f-bb5c-da28a1d996b3,150.00
-Test,"4K UHD монитор Samsung 32 дюйма",e5837e94-b52d-4708-ada7-fedde7e18a5d,479b6c3a-75fd-488f-bb5c-da28a1d996b3,450.75
+Телефон iPhone 14,"Смартфон Apple iPhone 14",f7f602c2-257e-4bb7-af34-186e173f01a4,2a988167-68c8-4278-b7aa-5a86d9dd4a36,999.99
+Ноутбук Lenovo,"Игровой ноутбук Lenovo Legion",f7f602c2-257e-4bb7-af34-186e173f01a4,2a988167-68c8-4278-b7aa-5a86d9dd4a36,1299.50
+Наушники Sony WH-1000XM5,"Беспроводные наушники с шумоподавлением",f7f602c2-257e-4bb7-af34-186e173f01a4,2a988167-68c8-4278-b7aa-5a86d9dd4a36,399.90
+Клавиатура Logitech,"Механическая клавиатура Logitech G Pro",f7f602c2-257e-4bb7-af34-186e173f01a4,2a988167-68c8-4278-b7aa-5a86d9dd4a36,150.00
+Test,"4K UHD монитор Samsung 32 дюйма",f7f602c2-257e-4bb7-af34-186e173f01a4,2a988167-68c8-4278-b7aa-5a86d9dd4a36,450.75

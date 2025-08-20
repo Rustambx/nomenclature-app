@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,17 +13,28 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
-            $table->text('description');
-            $table->uuid('category_id');
-            $table->uuid('supplier_id');
-            $table->decimal('price');
+            $table->text('description')->nullable();
+
+            $table->foreignUuid('category_id')
+                ->constrained('categories')
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('supplier_id')
+                ->constrained('suppliers')
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('created_by')->nullable()
+                ->constrained('users')->nullOnDelete();
+
+            $table->foreignUuid('updated_by')->nullable()
+                ->constrained('users')->nullOnDelete();
+
+            $table->decimal('price', 12, 2)->default(0);
             $table->string('file_url')->nullable();
-            $table->boolean('is_active');
-            $table->uuid('created_by')->nullable();
-            $table->uuid('updated_by')->nullable();
-            $table->dateTime('created_at')->nullable();
-            $table->dateTime('updated_at')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
         });
+
     }
 
     /**

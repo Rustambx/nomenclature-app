@@ -7,9 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Category\CategoryStoreRequest;
 use App\Http\Requests\Category\CategoryUpdateRequest;
 use App\Http\Resources\CategoryResource;
-use App\Models\Category;
 use App\Services\CategoryService;
-use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -23,11 +22,11 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories = $this->categoryService->getAll();
+        $categories = $this->categoryService->getPaginated($request);
 
-        return ApiResponse::success(CategoryResource::collection($categories), "Записи успешно получены");
+        return ApiResponse::paginated($categories, CategoryResource::class, "Записи успешно получены");
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Product;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ProductImportJob implements ShouldQueue
@@ -25,6 +26,10 @@ class ProductImportJob implements ShouldQueue
      */
     public function handle(): void
     {
+        if ($this->userId) {
+            Auth::loginUsingId($this->userId);
+        }
+
         foreach ($this->rows as $row) {
             try {
                 Product::create([
@@ -36,10 +41,14 @@ class ProductImportJob implements ShouldQueue
                     'created_by' => $this->userId,
                     'updated_by' => $this->userId,
                 ]);
-            } catch (\Throwable $exception) {
-                Log::error("Ошибка импорта товара", [
-                    'row' => $row,
-                    'error' => $exception->getMessage()
+            } catch (\Throwable $e) {
+                Log::error('Ошибка импорта товара', [
+                    'row'       => $row,
+                    'class'     => get_class($e),
+                    'file'      => $e->getFile(),
+                    'line'      => $e->getLine(),
+                    'message'   => $e->getMessage(),
+                    'trace'     => $e->getTraceAsString()
                 ]);
             }
         }

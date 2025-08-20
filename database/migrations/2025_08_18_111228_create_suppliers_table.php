@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('phone');
             $table->string('contact_name');
-            $table->string('website');
+            $table->string('website')->nullable();
             $table->text('description');
             $table->uuid('created_by')->nullable();
             $table->uuid('updated_by')->nullable();

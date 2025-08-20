@@ -8,13 +8,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
     public function register(Request $request): JsonResponse
     {
-        Log::info('Log started');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -30,9 +28,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Registered', 'user' => $user], 201);
     }
 
-    /**
-     * Логин (Password Grant)
-     */
     public function login(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -55,7 +50,6 @@ class AuthController extends Controller
             ]);
 
         if ($response->failed()) {
-            // Верни «по-человечески» что именно ответил сервер
             return response()->json([
                 'message' => 'OAuth error',
                 'status'  => $response->status(),
@@ -82,7 +76,7 @@ class AuthController extends Controller
             'refresh_token' => $request->refresh_token,
             'client_id'     => $clientId,
             'client_secret' => $clientSecret,
-            'scope'         => $request->input('scope', ''), // опционально
+            'scope'         => $request->input('scope', ''),
         ]);
 
         if ($tokenResponse->failed()) {
@@ -92,24 +86,17 @@ class AuthController extends Controller
         return response()->json($tokenResponse->json());
     }
 
-    /**
-     * Текущий пользователь.
-     */
     public function me(Request $request)
     {
         return response()->json($request->user());
     }
 
-    /**
-     * Выход: отзыв текущего access_token и связанного refresh_token.
-     */
     public function logout(Request $request)
     {
         $user = $request->user();
-        $token = $user->token(); // текущий личный access token из заголовка Bearer
+        $token = $user->token();
 
-        // Отзываем refresh токены
-        $token->revoke(); // делает token->revoked = true
+        $token->revoke();
 
         return response()->json(['message' => 'Logged out']);
     }

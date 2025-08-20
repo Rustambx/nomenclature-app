@@ -3,6 +3,8 @@
 namespace App\Traits;
 
 use App\Models\ChangeHistory;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 trait Auditable
 {
@@ -27,12 +29,27 @@ trait Auditable
     }
     protected static function logAction($model, string $action, array $changes = [])
     {
-        ChangeHistory::create([
-            'user_id' => request()->user()->id,
-            'entity_type' => $model->getTable(),
-            'entity_id' => $model->id,
-            'action' => $action,
-            'changes' => $changes,
-        ]);
+        $userId =
+            Auth::id()
+            ?? optional(request()->user())->id
+            ?? $model->created_by
+            ?? $model->updated_by
+            ?? null;
+
+        try {
+            ChangeHistory::create([
+                'user_id'     => $userId,
+                'entity_type' => $model->getTable(),
+                'entity_id'   => $model->getKey(),
+                'action'      => $action,
+                'changes'     => $changes,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Audit log failed', [
+                'model' => get_class($model),
+                'id'    => $model->getKey(),
+                'err'   => $e->getMessage(),
+            ]);
+        }
     }
 }

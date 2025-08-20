@@ -11,6 +11,7 @@ use App\Http\Requests\Product\ProductUploadRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -24,11 +25,11 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = $this->productService->getAll();
+        $products = $this->productService->getPaginated($request);
 
-        return ApiResponse::success(ProductResource::collection($products), "Записи успешно получены");
+        return ApiResponse::paginated($products, ProductResource::class, "Записи успешно получены");
     }
 
     /**
@@ -76,15 +77,6 @@ class ProductController extends Controller
         $this->productService->delete($product);
 
         return ApiResponse::success([], "Запись успешно удалена");
-    }
-
-    public function trashed()
-    {
-        $products = Product::onlyTrashed()->get();
-
-        return response()->json([
-            'data' => $products
-        ]);
     }
 
     public function upload(ProductUploadRequest $request)
