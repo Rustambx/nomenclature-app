@@ -5,15 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
     public function register(Request $request): JsonResponse
     {
+        Log::info('Log started');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -26,13 +27,7 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        $token = $user->createToken('auth_token')->accessToken;
-
-        return response()->json([
-            'user' => $user,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ], 201);
+        return response()->json(['message' => 'Registered', 'user' => $user], 201);
     }
 
     /**
@@ -40,41 +35,83 @@ class AuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        $data = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string'],
+            'scope'    => ['nullable', 'string'],
         ]);
 
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Неверные учетные данные'], 401);
+        $base = rtrim(env('PASSPORT_BASE_URL', config('app.url')), '/');
+
+        $response = Http::asForm()
+            ->acceptJson()
+            ->post("$base/oauth/token", [
+                'grant_type'    => 'password',
+                'client_id'     => config('services.passport.password_client_id'),
+                'client_secret' => config('services.passport.password_client_secret'),
+                'username'      => $data['email'],
+                'password'      => $data['password'],
+                'scope'         => $data['scope'] ?? '',
+            ]);
+
+        if ($response->failed()) {
+            // Верни «по-человечески» что именно ответил сервер
+            return response()->json([
+                'message' => 'OAuth error',
+                'status'  => $response->status(),
+                'error'   => $response->json('error'),
+                'error_description' => $response->json('error_description'),
+            ], 401);
         }
 
-        $user = Auth::user();
-        $token = $user->createToken('auth_token')->accessToken;
-
-        return response()->json([
-            'user' => $user,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+        return response()->json($response->json());
     }
 
-    /**
-     * Выход
-     */
-    public function logout(Request $request): JsonResponse
+
+    public function refresh(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->validate([
+            'refresh_token' => ['required', 'string'],
+        ]);
 
-        return response()->json(['message' => 'Успешный выход']);
+        $clientId     = config('services.passport.password_client_id');
+        $clientSecret = config('services.passport.password_client_secret');
+
+        $tokenResponse = Http::asForm()->post(url('/oauth/token'), [
+            'grant_type'    => 'refresh_token',
+            'refresh_token' => $request->refresh_token,
+            'client_id'     => $clientId,
+            'client_secret' => $clientSecret,
+            'scope'         => $request->input('scope', ''), // опционально
+        ]);
+
+        if ($tokenResponse->failed()) {
+            return response()->json(['message' => 'Refresh failed', 'error' => $tokenResponse->json()], 401);
+        }
+
+        return response()->json($tokenResponse->json());
     }
 
     /**
-     * Данные авторизованного пользователя
+     * Текущий пользователь.
      */
-    public function user(Request $request): JsonResponse
+    public function me(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    /**
+     * Выход: отзыв текущего access_token и связанного refresh_token.
+     */
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        $token = $user->token(); // текущий личный access token из заголовка Bearer
+
+        // Отзываем refresh токены
+        $token->revoke(); // делает token->revoked = true
+
+        return response()->json(['message' => 'Logged out']);
     }
 }
 

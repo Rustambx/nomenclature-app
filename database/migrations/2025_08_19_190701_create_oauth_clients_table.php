@@ -13,17 +13,16 @@ return new class extends Migration
     {
         Schema::create('oauth_clients', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->nullableMorphs('owner');
+            $table->nullableUuidMorphs('owner');
             $table->string('name');
             $table->string('secret')->nullable();
             $table->string('provider')->nullable();
-            $table->text('redirect')->nullable();
-            $table->text('grant_types')->nullable();
-            $table->boolean('personal_access_client')->default(false);
-            $table->boolean('password_client')->default(false);
-            $table->boolean('revoked')->default(false);
+            $table->text('redirect_uris');
+            $table->text('grant_types');
+            $table->boolean('revoked');
             $table->timestamps();
         });
+
     }
 
     /**

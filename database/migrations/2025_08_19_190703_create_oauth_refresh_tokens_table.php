@@ -11,14 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('oauth_auth_codes', function (Blueprint $table) {
+        Schema::create('oauth_refresh_tokens', function (Blueprint $table) {
             $table->char('id', 80)->primary();
-            $table->uuid('user_id')->index();
-            $table->foreignUuid('client_id');
-            $table->text('scopes')->nullable();
+            $table->char('access_token_id', 80)->index();
             $table->boolean('revoked');
             $table->dateTime('expires_at')->nullable();
+
+            $table->foreign('access_token_id')
+                ->references('id')
+                ->on('oauth_access_tokens')
+                ->cascadeOnDelete();
         });
+
     }
 
     /**
@@ -26,7 +30,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('oauth_auth_codes');
+        Schema::dropIfExists('oauth_refresh_tokens');
     }
 
     /**

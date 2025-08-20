@@ -12,10 +12,10 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-Route::post('/test', [TestController::class, 'index']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-ROute::post('/logout', [AuthController::class, 'logout']);
+//Route::post('/test', [TestController::class, 'index']);
+//Route::post('/register', [AuthController::class, 'register']);
+//Route::post('/login', [AuthController::class, 'login']);
+//ROute::post('/logout', [AuthController::class, 'logout']);
 
 Route::group(['middleware' => ['auth:api']], function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -29,4 +29,11 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::resource('suppliers', SupplierController::class);
     Route::resource('products', ProductController::class);
 
+});
+
+Route::prefix('auth')->group(function () {
+    Route::post('register', [AuthController::class, 'register']);
+    Route::post('login',    [AuthController::class, 'login']);
+    Route::post('refresh',  [AuthController::class, 'refresh']);
+    Route::post('logout',   [AuthController::class, 'logout'])->middleware('auth:api');
 });
